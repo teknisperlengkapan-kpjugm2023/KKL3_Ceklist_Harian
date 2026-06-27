@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#00416b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="format-detection" content="telephone=no">
+<title>KKL III — Form Inspeksi Perlengkapan Lapangan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#00416b;
+    --blue-deep:#002b46;
+    --yellow:#fbd504;
+    --white:#ffffff;
+    --black:#111315;
+    --line:#dfe4e8;
+    --paper:#f6f7f8;
+    --green:#1c7c3f;
+    --green-bg:#e7f6ec;
+    --red:#b3261e;
+    --red-bg:#fdecea;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--paper);
+    color:var(--black);
+    -webkit-font-smoothing:antialiased;
+    overscroll-behavior-y:contain;
+  }
+  .app{
+    max-width:760px;margin:0 auto;
+    min-height:100vh;min-height:100dvh;
+    background:var(--white);position:relative;box-shadow:0 0 60px rgba(0,40,70,0.06);
+    padding-left:env(safe-area-inset-left);
+    padding-right:env(safe-area-inset-right);
+  }
+
+  /* ===== Topographic header ===== */
+  .topo-header{
+    position:relative;
+    background:var(--blue);
+    color:var(--white);
+    padding:calc(28px + env(safe-area-inset-top)) 24px 22px;
+    overflow:hidden;
+    border-bottom:4px solid var(--yellow);
+  }
+  .topo-header svg.contours{
+    position:absolute;inset:0;width:100%;height:100%;opacity:0.16;
+  }
+  .topo-inner{position:relative;z-index:2;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--yellow);
+    margin:0 0 6px;
+  }
+  .topo-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:23px;
+    line-height:1.25;
+    margin:0;
+  }
+  .topo-sub{
+    font-size:13px;
+    color:#cfe1ec;
+    margin:6px 0 0;
+  }
+
+  /* ===== Stepper ===== */
+  .stepper{
+    display:flex;
+    padding:16px 20px;
+    gap:4px;
+    border-bottom:1px solid var(--line);
+    background:var(--white);
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+  }
+  .stepper::-webkit-scrollbar{display:none;}
+  .step-pin{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    min-width:64px;
+  }
+  .step-pin .num{
+    width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:12px;
+    background:var(--paper);
+    border:1.5px solid var(--line);
+    color:#9aa3aa;
+    transition:all .2s ease;
+  }
+  .step-pin.active .num{background:var(--blue);border-color:var(--blue);color:var(--white);}
+  .step-pin.done .num{background:var(--yellow);border-color:var(--yellow);color:var(--blue-deep);}
+  .step-pin .lbl{font-size:9.5px;letter-spacing:.02em;color:#7c8790;text-align:center;font-weight:600;text-transform:uppercase;}
+  .step-pin.active .lbl{color:var(--blue);}
+  .step-track{height:2px;background:var(--line);flex:0 0 100%;margin-top:13px;position:relative;}
+
+  /* ===== Body / steps ===== */
+  .step-body{padding:26px 22px 110px;}
+  .step-head{margin-bottom:20px;}
+  .step-kicker{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;color:var(--blue);letter-spacing:.1em;text-transform:uppercase;font-weight:500;
+  }
+  .step-h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:21px;font-weight:700;margin:4px 0 6px;color:var(--black);
+  }
+  .step-desc{font-size:13.5px;color:#5b6670;line-height:1.5;margin:0;}
+
+  /* tema / day option cards */
+  .option-grid{display:flex;flex-direction:column;gap:9px;}
+  .opt-card{
+    display:flex;align-items:center;gap:12px;
+    border:1.5px solid var(--line);border-radius:var(--radius);
+    padding:14px 16px;cursor:pointer;background:var(--white);
+    transition:border-color .15s, background .15s;
+    font-size:14.5px;font-weight:600;color:var(--black);
+    min-height:48px;touch-action:manipulation;-webkit-user-select:none;user-select:none;
+  }
+  .opt-card .dot{
+    width:18px;height:18px;border-radius:50%;border:2px solid #c5cdd3;flex:0 0 18px;
+    position:relative;
+  }
+  .opt-card .dot::after{
+    content:'';position:absolute;inset:3px;border-radius:50%;background:var(--blue);
+    opacity:0;transform:scale(0.5);transition:all .15s;
+  }
+  .opt-card:hover{border-color:#9fb6c4;}
+  .opt-card.selected{border-color:var(--blue);background:#eef5f9;}
+  .opt-card.selected .dot{border-color:var(--blue);}
+  .opt-card.selected .dot::after{opacity:1;transform:scale(1);}
+  .opt-card .meta{margin-left:auto;font-size:11px;font-weight:500;color:#8a949c;font-family:'JetBrains Mono',monospace;}
+
+  .day-card .place{display:block;font-size:11.5px;font-weight:500;color:#74808a;margin-top:2px;}
+
+  /* form fields */
+  .field{margin-bottom:18px;}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--blue-deep);margin-bottom:7px;text-transform:uppercase;letter-spacing:.03em;}
+  .field input[type=text]{
+    width:100%;border:1.5px solid var(--line);border-radius:10px;padding:13px 14px;
+    font-size:16px;font-family:'Inter',sans-serif;color:var(--black);background:var(--white);
+    -webkit-appearance:none;appearance:none;
+  }
+  .field input[type=text]:focus{outline:none;border-color:var(--blue);}
+
+  /* photo capture */
+  .photo-box{
+    border:1.5px dashed #b9c4cc;border-radius:var(--radius);padding:18px;text-align:center;background:#fbfcfd;
+  }
+  .photo-btn{
+    display:inline-flex;align-items:center;gap:8px;justify-content:center;
+    background:var(--blue);color:var(--white);border:none;border-radius:9px;
+    padding:11px 18px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:'Inter',sans-serif;
+    min-height:44px;touch-action:manipulation;
+  }
+  .photo-btn:active{background:var(--blue-deep);}
+  .photo-hint{font-size:12px;color:#7c8790;margin-top:8px;}
+  .photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;}
+  .photo-thumb{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#000;aspect-ratio:1/1;}
+  .photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .photo-thumb .tstamp{
+    position:absolute;left:0;right:0;bottom:0;
+    background:linear-gradient(transparent, rgba(0,0,0,.75));
+    color:#fff;font-size:8.5px;font-family:'JetBrains Mono',monospace;padding:10px 6px 5px;text-align:left;line-height:1.3;
+  }
+  .photo-thumb .rm{
+    position:absolute;top:4px;right:4px;width:26px;height:26px;border-radius:50%;
+    background:rgba(0,0,0,.55);color:#fff;border:none;cursor:pointer;line-height:1;
+    display:flex;align-items:center;justify-content:center;touch-action:manipulation;
+  }
+
+  /* live camera stage */
+  .cam-live{border-radius:10px;overflow:hidden;background:#000;position:relative;}
+  .cam-live video{display:block;width:100%;max-height:340px;object-fit:cover;background:#000;}
+  .cam-controls{display:flex;gap:10px;margin-top:12px;}
+  .cam-controls .photo-btn{flex:1;justify-content:center;}
+  .btn-cam-secondary{
+    flex:1;background:var(--white);color:var(--blue);border:1.5px solid var(--line);border-radius:9px;
+    padding:11px 18px;font-weight:700;font-size:13.5px;cursor:pointer;font-family:'Inter',sans-serif;
+    min-height:44px;touch-action:manipulation;
+  }
+  .cam-error{
+    background:var(--red-bg);border:1px solid #f3c6c3;color:var(--red);border-radius:9px;
+    padding:12px 14px;font-size:12.5px;text-align:left;line-height:1.5;margin-top:10px;
+  }
+  .cam-note{
+    font-size:11.5px;color:#7c8790;text-align:left;line-height:1.5;margin-top:10px;
+    border-top:1px dashed var(--line);padding-top:10px;
+  }
+
+  /* alat (equipment) inspection cards */
+  .tema-banner{
+    display:flex;align-items:center;gap:10px;background:#eef5f9;border:1px solid #cfe1ec;
+    border-radius:10px;padding:10px 14px;margin-bottom:18px;font-size:12.5px;color:var(--blue-deep);font-weight:600;
+  }
+  .tema-banner .sw{width:8px;height:8px;border-radius:50%;background:var(--blue);flex:0 0 8px;}
+  .alat-card{
+    border:1.5px solid var(--line);border-radius:var(--radius);padding:14px 16px;margin-bottom:11px;
+    background:var(--white);transition:border-color .15s, background .15s;
+  }
+  .alat-card.baik{border-color:var(--green);background:var(--green-bg);}
+  .alat-card.rusak{border-color:var(--red);background:var(--red-bg);}
+  .alat-row{display:flex;align-items:center;gap:12px;cursor:pointer;min-height:44px;touch-action:manipulation;-webkit-user-select:none;user-select:none;}
+  .alat-row .check{
+    width:24px;height:24px;border-radius:7px;border:2px solid #c5cdd3;flex:0 0 24px;
+    display:flex;align-items:center;justify-content:center;color:#fff;
+    background:var(--white);transition:all .15s;
+  }
+  .alat-card.baik .check{background:var(--green);border-color:var(--green);}
+  .alat-card.rusak .check{background:var(--red);border-color:var(--red);}
+  .alat-card.baik .check .ico-check, .alat-card.rusak .check .ico-check{opacity:1;}
+  .alat-name{font-size:14.5px;font-weight:600;flex:1;}
+  .alat-status-tag{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-family:'JetBrains Mono',monospace;}
+  .alat-card.baik .alat-status-tag{color:var(--green);}
+  .alat-card.rusak .alat-status-tag{color:var(--red);}
+  .alat-card:not(.baik):not(.rusak) .alat-status-tag{color:#9aa3aa;}
+  .alasan-box{margin-top:12px;}
+  .alasan-box textarea{
+    width:100%;min-height:70px;border:1.5px solid #efb9b6;border-radius:9px;padding:11px 12px;
+    font-family:'Inter',sans-serif;font-size:16px;resize:vertical;background:#fff;-webkit-appearance:none;appearance:none;
+  }
+  .alasan-box textarea:focus{outline:none;border-color:var(--red);}
+  .alasan-label{font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;display:block;}
+  .alasan-err{font-size:11px;color:var(--red);margin-top:5px;font-weight:600;display:none;}
+  .alasan-box.err textarea{border-color:var(--red);}
+  .alasan-box.err .alasan-err{display:block;}
+
+  /* declaration */
+  .declare-box{
+    background:var(--blue);color:var(--white);border-radius:var(--radius);padding:20px;margin-bottom:18px;
+    border-left:5px solid var(--yellow);
+  }
+  .declare-box p{font-size:14px;line-height:1.6;margin:0;font-style:italic;}
+  .declare-check{display:flex;align-items:flex-start;gap:11px;padding:14px 16px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;touch-action:manipulation;}
+  .declare-check input{margin-top:3px;width:18px;height:18px;accent-color:var(--blue);flex:0 0 18px;}
+  .declare-check span{font-size:13.5px;line-height:1.5;color:#3b454d;}
+  .summary-list{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:18px;}
+  .summary-row{display:flex;justify-content:space-between;gap:12px;padding:11px 16px;font-size:13px;border-bottom:1px solid var(--line);}
+  .summary-row:last-child{border-bottom:none;}
+  .summary-row .k{color:#7c8790;font-weight:600;}
+  .summary-row .v{font-weight:700;text-align:right;color:var(--black);}
+
+  /* nav bar */
+  .nav-bar{
+    position:sticky;bottom:0;left:0;right:0;
+    display:flex;gap:10px;
+    padding:14px 22px calc(14px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.96);backdrop-filter:blur(6px);
+    border-top:1px solid var(--line);
+  }
+  .btn{
+    border:none;border-radius:10px;padding:14px 18px;font-weight:700;font-size:14.5px;cursor:pointer;
+    font-family:'Inter',sans-serif;flex:1;transition:transform .1s, opacity .15s;
+    min-height:48px;touch-action:manipulation;
+  }
+  .btn:active{transform:scale(0.98);}
+  .btn-primary{background:var(--blue);color:var(--white);}
+  .btn-primary:disabled{background:#b8c4cb;cursor:not-allowed;}
+  .btn-ghost{background:var(--paper);color:var(--blue);flex:1;border:1.5px solid var(--line);}
+  .btn-submit{background:var(--yellow);color:var(--blue-deep);}
+  .btn-submit:disabled{background:#f1ecc8;color:#a5a08a;cursor:not-allowed;}
+
+  /* success screen */
+  .success-screen{padding:60px 26px;text-align:center;}
+  .success-badge{
+    width:74px;height:74px;border-radius:50%;background:var(--blue);color:var(--yellow);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 22px;font-size:34px;font-weight:700;
+    font-family:'Space Grotesk',sans-serif;border:4px solid var(--yellow);
+  }
+  .success-screen h2{font-family:'Space Grotesk',sans-serif;font-size:22px;margin:0 0 10px;}
+  .success-screen p{font-size:13.5px;color:#5b6670;max-width:380px;margin:0 auto 24px;line-height:1.6;}
+  .success-id{
+    font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--paper);border:1px solid var(--line);
+    border-radius:8px;padding:10px 14px;display:inline-block;color:#5b6670;
+  }
+
+  ::placeholder{color:#a3acb3;}
+
+  /* CSS-drawn icons (no emoji/glyphs) */
+  .ico-check{position:relative;display:inline-block;width:11px;height:7px;opacity:0;transition:opacity .15s;}
+  .ico-check::after{content:'';position:absolute;left:0;top:-1px;width:11px;height:6px;border-left:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);}
+  .ico-close{position:relative;display:inline-block;width:10px;height:10px;}
+  .ico-close::before,.ico-close::after{content:'';position:absolute;top:50%;left:0;width:100%;height:2px;background:currentColor;border-radius:1px;}
+  .ico-close::before{transform:rotate(45deg);}
+  .ico-close::after{transform:rotate(-45deg);}
+  .ico-check-lg{width:30px;height:18px;}
+  .ico-check-lg::after{width:30px;height:16px;border-width:4px;}
+
+  @media (max-width:420px){
+    .topo-title{font-size:19px;}
+    .step-body{padding:20px 16px 100px;}
+    .photo-grid{grid-template-columns:repeat(2,1fr);}
+    .nav-bar{padding-left:16px;padding-right:16px;}
+    .topo-header{padding-left:18px;padding-right:18px;}
+  }
+  @media (max-width:340px){
+    .step-pin .lbl{font-size:8.5px;}
+    .alat-name{font-size:13.5px;}
+  }
+  @media (orientation:landscape) and (max-height:480px){
+    .cam-live video{max-height:50vh;}
+    .step-body{padding-bottom:90px;}
+  }
+  @media (min-width:761px){
+    body{padding:24px 0;}
+    .app{min-height:auto;border-radius:18px;overflow:hidden;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topo-header">
+    <svg class="contours" viewBox="0 0 700 200" preserveAspectRatio="none">
+      <path d="M-20,40 C120,10 220,80 360,40 S560,10 720,50" stroke="#fff" stroke-width="1.5" fill="none"/>
+      <path d="M-20,70 C120,40 220,110 360,70 S560,40 720,80" stroke="#fff" stroke-width="1.5" fill="none"/>
+      <path d="M-20,100 C120,70 220,140 360,100 S560,70 720,110" stroke="#fff" stroke-width="1.5" fill="none"/>
+      <path d="M-20,130 C120,100 220,170 360,130 S560,100 720,140" stroke="#fff" stroke-width="1.5" fill="none"/>
+      <path d="M-20,160 C120,130 220,200 360,160 S560,130 720,170" stroke="#fff" stroke-width="1.5" fill="none"/>
+    </svg>
+    <div class="topo-inner">
+      <p class="eyebrow">Fakultas Geografi · Lombok, 27 Jun – 5 Jul 2026</p>
+      <h1 class="topo-title">Form Inspeksi Perlengkapan<br>Kuliah Kerja Lapangan III</h1>
+      <p class="topo-sub">Isi setiap bagian secara berurutan sesuai kondisi alat yang sebenarnya di lapangan.</p>
+    </div>
+  </div>
+
+  <div class="stepper" id="stepper"></div>
+
+  <div id="stepContainer"></div>
+
+</div>
+
+<script>
+/* ============== DATA ============== */
+const TEMA_LIST = [
+  "Mangrove 1","Mangrove 2","Perkotaan 1","Perkotaan 2","Bencana 1","Bencana 2",
+  "Evaluasi Lahan 1","Evaluasi Lahan 2","Pertanian 1","Pertanian 2",
+  "Pesisir 1","Pesisir 2","Vegetasi 1","Vegetasi 2","Air Permukaan","Biodiversitas"
+];
+
+const HARI_LIST = [
+  {id:"d1", date:"Sabtu, 27 Juni 2026", place:"Fakultas Geografi", sub:["Berangkat"]},
+  {id:"d2", date:"Minggu, 28 Juni 2026", place:"Pelabuhan Tanjung Perak", sub:["Masuk Kapal"]},
+  {id:"d3", date:"Senin, 29 Juni 2026", place:"Lombok", sub:["Keluar Kapal","Masuk Hotel"]},
+  {id:"d4", date:"Selasa, 30 Juni 2026", place:"Day 1", sub:["Pagi","Malam"]},
+  {id:"d5", date:"Rabu, 1 Juli 2026", place:"Day 2", sub:["Pagi","Malam"]},
+  {id:"d6", date:"Kamis, 2 Juli 2026", place:"Day 3", sub:["Pagi","Malam"]},
+  {id:"d7", date:"Jumat, 3 Juli 2026", place:"Ekstra Day", sub:["Pagi","Malam"]},
+  {id:"d8", date:"Sabtu, 4 Juli 2026", place:"One Day Trip", sub:["Malam"]},
+  {id:"d9", date:"Minggu, 5 Juli 2026", place:"Bandara", sub:["Masuk Bus (Lombok)","Masuk Bandara","Masuk Bus (Yogyakarta)"]},
+];
+
+const ALAT_DB = {
+  "Mangrove 1": [
+    "GPS (1)","Lensa Fisheye (1)","Meteran Jahit (6)","Tali Plot (3)",
+    "Spektrometer (1)","Laser Range Finder (1)","HT (2)","Tongkat (1)","Drybag (1)"
+  ],
+  "Mangrove 2": [
+    "GPS (1)","Fisheye (1)","Meteran Jahit (6)","Tali Plot (4)",
+    "Laser Range Finder (1)","HT (2)","Tongkat (1)","Drybag (1)"
+  ],
+  "Perkotaan 1": [
+    "Distometer (3)","Meteran Survey (3) (2+1*)"
+  ],
+  "Perkotaan 2": [
+    "Environment Meter 5in1 (3)","GPS (3)"
+  ],
+  "Pesisir 1": [
+    "GPS (1)","OM System TG-7 (1)","Kertas Tahan Air (10)","Pelampung (3)"
+  ],
+  "Pesisir 2": [
+    "GPS (2)","OM System TG-7 (1)","Kertas Tahan Air (10)"
+  ],
+  "Pertanian 1": [
+    "GPS (3)","Meteran Survey (3)","Tali Plot (3)"
+  ],
+  "Pertanian 2": [
+    "GPS *Bersama Bencana 1 (1)","Soil Test Kit (1)","Bor Tanah (1)","Cetok (1)",
+    "Munsell Soil Color Chart (1)","Palu Geologi (1)","Terpal (1)",
+    "Ring Infiltrasi (1 set)","Meteran Survey (2)","Salinometer (1)",
+    "Water Test Strip (1)","Laser Range Finder (1)"
+  ],
+  "Bencana 1": [
+    "Meteran Survey (3)","Cetok (3)","GPS *Bersama Pertanian 2 (1)"
+  ],
+  "Bencana 2": [
+    "GPS (2)","Soil Test Kit (1)","Bor Tanah (1)","Cetok (2)",
+    "Munsell Soil Color Chart (1)","Palu Geologi (2 set)","Terpal (1)",
+    "Abney Level (2)","Meteran Survey (2)","Kompas Geologi (2)"
+  ],
+  "Evaluasi Lahan 1": [
+    "GPS (1)","Soil Test Kit (1)","Bor Tanah (1)","Cetok (1)",
+    "Munsell Soil Color Chart (1)","Palu Geologi (1 set)","Terpal (1)",
+    "Saringan 2mm (1)","Hygrometer (1)","Soil Tester (1)"
+  ],
+  "Evaluasi Lahan 2": [
+    "GPS (1)","Soil Test Kit (1)","Bor Tanah (1)","Cetok (1+2*)",
+    "Munsell Soil Color Chart (1)","Palu Geologi (1)","Terpal (1)",
+    "Ring Infiltrasi (1 set)"
+  ],
+  "Vegetasi 1": [
+    "GPS (1)","Fish Eye (1)","Tali Plot (2)",
+    "Laser Range Finder (1)","Meteran Survey (1)"
+  ],
+  "Vegetasi 2": [
+    "GPS (2)","Fish Eye (1)","Tali Plot (2)",
+    "Laser Range Finder (1)","Meteran Survey (2)"
+  ],
+  "Air Permukaan": [
+    "GPS (1)","SONAR Handheld (1)","Botol Sampel Air (21)",
+    "Cooler Box (1)","Atago (1)","Tongkat Sampel (1)","Pelampung (3)"
+  ],
+  "Biodiversitas": [
+    "Meteran Tukang (1)","GPS (1)","Fisheye (1)","Canon RP (1)",
+    "Lensa Telephoto Camera (1)","Soil Tester (1)","Tali Plot (2)","Binocular (1)"
+  ]
+};
+
+/* ============== KONFIGURASI BACKEND (GOOGLE APPS SCRIPT) ============== */
+// Ganti URL di bawah ini dengan URL Web App hasil deploy Google Apps Script kamu.
+// Caranya: buka Google Sheets > Ekstensi > Apps Script > tempel kode dari file Code.gs >
+// klik "Deploy" > "New deployment" > pilih tipe "Web app" > Execute as: Me,
+// Who has access: "Anyone" > Deploy > salin URL yang berakhiran /exec, lalu tempel di bawah ini.
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzgCHNi2rLDvv4Ng1CQ4TfqgM_plcQ6j-0Go05dVL0JO4ysJSpi6neZneN5tc8uDQC4/exec";
+
+/* ============== STATE ============== */
+let camStream = null; // active MediaStream for live camera capture (Bagian 4)
+
+const STEPS = [
+  {n:1, lbl:"Tema"},
+  {n:2, lbl:"Jadwal"},
+  {n:3, lbl:"Aktivitas"},
+  {n:4, lbl:"Petugas"},
+  {n:5, lbl:"Inspeksi"},
+  {n:6, lbl:"Konfirmasi"},
+];
+
+let state = {
+  step: 1,
+  tema: null,
+  hari: null,
+  aktivitas: null,
+  namaPengisi: "",
+  foto: [],
+  alat: {},   // {namaAlat: {status:'baik'|'rusak'|null, alasan:''}}
+  declare: false,
+  submitted: false,
+  submitId: null,
+  sending: false,
+  sendError: null
+};
+
+function fmtTime(d){
+  const pad = n => String(n).padStart(2,"0");
+  const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"][d.getDay()];
+  return `${hari}, ${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} — ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+/* ============== RENDER: STEPPER ============== */
+function renderStepper(){
+  const el = document.getElementById("stepper");
+  el.innerHTML = STEPS.map(s => `
+    <div class="step-pin ${s.n===state.step?'active':''} ${s.n<state.step?'done':''}">
+      <div class="num">${s.n}</div>
+      <div class="lbl">${s.lbl}</div>
+    </div>
+  `).join("");
+}
+
+/* ============== RENDER: STEPS ============== */
+function renderStep(){
+  const c = document.getElementById("stepContainer");
+  if(state.submitted){ c.innerHTML = successScreen(); return; }
+
+  let body = "";
+  if(state.step===1) body = step1();
+  else if(state.step===2) body = step2();
+  else if(state.step===3) body = step3();
+  else if(state.step===4) body = step4();
+  else if(state.step===5) body = step5();
+  else if(state.step===6) body = step6();
+
+  c.innerHTML = body;
+  attachStepEvents();
+}
+
+function step1(){
+  return `
+  <div class="step-body">
+    <div class="step-head">
+      <p class="step-kicker">Bagian 1 / 6</p>
+      <h2 class="step-h1">Pilih Tema Kajian</h2>
+      <p class="step-desc">Pilih satu tema yang menjadi penugasanmu. Daftar perlengkapan pada Bagian 5 akan menyesuaikan pilihan ini.</p>
+    </div>
+    <div class="option-grid">
+      ${TEMA_LIST.map(t => `
+        <div class="opt-card ${state.tema===t?'selected':''}" data-tema="${t}">
+          <div class="dot"></div><span>${t}</span>
+        </div>
+      `).join("")}
+    </div>
+  </div>
+  ${navBar(false, !!state.tema)}
+  `;
+}
+
+function step2(){
+  return `
+  <div class="step-body">
+    <div class="step-head">
+      <p class="step-kicker">Bagian 2 / 6</p>
+      <h2 class="step-h1">Pilih Hari & Lokasi</h2>
+      <p class="step-desc">Pilih satu agenda hari ini sesuai jadwal perjalanan KKL III.</p>
+    </div>
+    <div class="option-grid">
+      ${HARI_LIST.map(h => `
+        <div class="opt-card day-card ${state.hari===h.id?'selected':''}" data-hari="${h.id}">
+          <div class="dot"></div>
+          <span>${h.date}<span class="place">${h.place}</span></span>
+        </div>
+      `).join("")}
+    </div>
+  </div>
+  ${navBar(true, !!state.hari)}
+  `;
+}
+
+function step3(){
+  const hari = HARI_LIST.find(h=>h.id===state.hari);
+  return `
+  <div class="step-body">
+    <div class="step-head">
+      <p class="step-kicker">Bagian 3 / 6</p>
+      <h2 class="step-h1">Pilih Aktivitas</h2>
+      <p class="step-desc">Aktivitas untuk <strong>${hari.date} — ${hari.place}</strong>.</p>
+    </div>
+    <div class="option-grid">
+      ${hari.sub.map(s => `
+        <div class="opt-card ${state.aktivitas===s?'selected':''}" data-akt="${s}" style="padding:22px 16px;">
+          <div class="dot"></div><span>${s}</span>
+        </div>
+      `).join("")}
+    </div>
+  </div>
+  ${navBar(true, !!state.aktivitas)}
+  `;
+}
+
+function step4(){
+  return `
+  <div class="step-body">
+    <div class="step-head">
+      <p class="step-kicker">Bagian 4 / 6</p>
+      <h2 class="step-h1">Data Petugas & Dokumentasi</h2>
+      <p class="step-desc">Isi nama pengisi dan ambil foto seluruh alat yang akan diperiksa.</p>
+    </div>
+    <div class="field">
+      <label for="namaPengisi">Nama Pengisi</label>
+      <input type="text" id="namaPengisi" placeholder="Tulis nama lengkap" value="${state.namaPengisi}">
+    </div>
+    <div class="field">
+      <label>Foto Seluruh Alat (Langsung dari Kamera)</label>
+      <div class="photo-box">
+
+        <div id="camIdle" style="${camStream ? 'display:none;' : ''}">
+          <button class="photo-btn" id="startCamBtn" type="button">Buka Kamera</button>
+          <p class="photo-hint">Foto wajib diambil langsung dari kamera perangkat saat itu juga. Pemilihan foto lama dari galeri tidak diperbolehkan, dan tanggal-jam pengambilan otomatis tertera pada gambar.</p>
+        </div>
+
+        <div id="camLive" class="cam-live" style="${camStream ? '' : 'display:none;'}">
+          <video id="camVideo" autoplay playsinline muted></video>
+        </div>
+        <div class="cam-controls" id="camControls" style="${camStream ? '' : 'display:none;'}">
+          <button class="photo-btn" id="shootBtn" type="button">Jepret</button>
+          <button class="btn-cam-secondary" id="closeCamBtn" type="button">Tutup Kamera</button>
+        </div>
+
+        <div id="camError" class="cam-error" style="display:none;"></div>
+
+        <div id="photoGridWrap">
+          ${photoGridHTML()}
+        </div>
+
+        <p class="cam-note">Catatan: cap tanggal/jam diambil dari jam perangkat saat tombol jepret ditekan, lalu ditempelkan langsung pada gambar sehingga tidak bisa diganti dari galeri foto.</p>
+      </div>
+    </div>
+  </div>
+  ${navBar(true, state.namaPengisi.trim().length>0 && state.foto.length>0)}
+  `;
+}
+
+function photoGridHTML(){
+  if(!state.foto.length) return "";
+  return `<div class="photo-grid">${state.foto.map((f,i)=>`
+    <div class="photo-thumb">
+      <img src="${f.data}">
+      <button class="rm" data-rm="${i}" type="button"><span class="ico-close"></span></button>
+      <div class="tstamp">${f.time}</div>
+    </div>
+  `).join("")}</div>`;
+}
+
+function step5(){
+  const items = ALAT_DB[state.tema] || [];
+  items.forEach(name => { if(!state.alat[name]) state.alat[name] = {status:null, alasan:""}; });
+
+  return `
+  <div class="step-body">
+    <div class="step-head">
+      <p class="step-kicker">Bagian 5 / 6</p>
+      <h2 class="step-h1">Inspeksi Perlengkapan</h2>
+      <p class="step-desc">Ketuk alat untuk menandai <strong>kondisi baik & lengkap</strong>. Alat yang tidak ditandai dianggap rusak/hilang dan wajib diberi alasan.</p>
+    </div>
+    <div class="tema-banner"><span class="sw"></span>Daftar alat tema: ${state.tema}</div>
+    ${items.map(name => {
+      const a = state.alat[name];
+      const cls = a.status==='baik' ? 'baik' : a.status==='rusak' ? 'rusak' : '';
+      const tag = a.status==='baik' ? 'Baik & Lengkap' : a.status==='rusak' ? 'Rusak / Hilang' : 'Belum diperiksa';
+      const showReason = a.status==='rusak';
+      return `
+      <div class="alat-card ${cls}" data-alat="${name}">
+        <div class="alat-row" data-toggle="${name}">
+          <div class="check"><span class="ico-check"></span></div>
+          <div class="alat-name">${name}</div>
+          <div class="alat-status-tag">${tag}</div>
+        </div>
+        ${showReason ? `
+          <div class="alasan-box ${a.alasan.trim()==='' && state.touchedReason ? 'err' : ''}" data-reasonbox="${name}">
+            <span class="alasan-label">Alasan hilang / rusak</span>
+            <textarea placeholder="Jelaskan kondisi alat ini..." data-reason="${name}">${a.alasan}</textarea>
+            <div class="alasan-err">Wajib diisi sebelum melanjutkan.</div>
+          </div>
+        ` : ""}
+      </div>`;
+    }).join("")}
+  </div>
+  ${navBar(true, true, "step5")}
+  `;
+}
+
+function step6(){
+  const hari = HARI_LIST.find(h=>h.id===state.hari);
+  const items = ALAT_DB[state.tema] || [];
+  const baikCount = items.filter(n=>state.alat[n]?.status==='baik').length;
+  const rusakCount = items.filter(n=>state.alat[n]?.status==='rusak').length;
+  return `
+  <div class="step-body">
+    <div class="step-head">
+      <p class="step-kicker">Bagian 6 / 6</p>
+      <h2 class="step-h1">Konfirmasi & Kirim</h2>
+      <p class="step-desc">Periksa kembali ringkasan data sebelum mengirim laporan.</p>
+    </div>
+
+    <div class="summary-list">
+      <div class="summary-row"><span class="k">Tema</span><span class="v">${state.tema}</span></div>
+      <div class="summary-row"><span class="k">Jadwal</span><span class="v">${hari.date}</span></div>
+      <div class="summary-row"><span class="k">Aktivitas</span><span class="v">${state.aktivitas}</span></div>
+      <div class="summary-row"><span class="k">Pengisi</span><span class="v">${state.namaPengisi}</span></div>
+      <div class="summary-row"><span class="k">Foto</span><span class="v">${state.foto.length} foto</span></div>
+      <div class="summary-row"><span class="k">Alat Baik</span><span class="v">${baikCount} item</span></div>
+      <div class="summary-row"><span class="k">Alat Rusak/Hilang</span><span class="v">${rusakCount} item</span></div>
+    </div>
+
+    ${state.sendError ? `<div class="cam-error" style="margin-bottom:18px;">${state.sendError}</div>` : ""}
+
+    <div class="declare-box">
+      <p>"Saya menyatakan bahwa data inspeksi alat ini diisi sesuai dengan kondisi aslinya tanpa manipulasi, dan saya bertanggung jawab penuh atas kebenaran informasi yang diberikan."</p>
+    </div>
+
+    <label class="declare-check">
+      <input type="checkbox" id="declareCheck" ${state.declare?'checked':''}>
+      <span>Saya menyetujui pernyataan di atas dan siap mengirim laporan inspeksi ini.</span>
+    </label>
+  </div>
+  ${navBar(true, state.declare, "step6")}
+  `;
+}
+
+function successScreen(){
+  return `
+  <div class="success-screen">
+    <div class="success-badge"><span class="ico-check ico-check-lg" style="opacity:1;"></span></div>
+    <h2>Laporan Terkirim</h2>
+    <p>Data inspeksi perlengkapan untuk tema <strong>${state.tema}</strong> telah berhasil dikirim oleh ${state.namaPengisi}. Terima kasih atas kejujuran dan kelengkapan datamu.</p>
+    <div class="success-id">ID Laporan: ${state.submitId}</div>
+  </div>
+  `;
+}
+
+/* ============== NAV BAR ============== */
+function navBar(showBack, canNext, mode){
+  const isLast = state.step===6;
+  const btnLabel = isLast ? (state.sending ? 'Mengirim...' : 'Kirim Laporan') : 'Lanjut';
+  const disabled = state.sending ? true : !canNext;
+  return `
+  <div class="nav-bar">
+    ${showBack && !state.sending ? `<button class="btn btn-ghost" id="btnBack">Kembali</button>` : ""}
+    <button class="btn ${isLast?'btn-submit':'btn-primary'}" id="btnNext" ${disabled?'disabled':''}>
+      ${btnLabel}
+    </button>
+  </div>
+  `;
+}
+
+/* ============== EVENTS ============== */
+function attachStepEvents(){
+  // step1: tema
+  document.querySelectorAll('[data-tema]').forEach(el=>{
+    el.addEventListener('click', ()=>{ state.tema = el.dataset.tema; renderStep(); });
+  });
+  // step2: hari
+  document.querySelectorAll('[data-hari]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state.hari = el.dataset.hari;
+      state.aktivitas = null;
+      renderStep();
+    });
+  });
+  // step3: aktivitas
+  document.querySelectorAll('[data-akt]').forEach(el=>{
+    el.addEventListener('click', ()=>{ state.aktivitas = el.dataset.akt; renderStep(); });
+  });
+  // step4: nama
+  const namaInput = document.getElementById('namaPengisi');
+  if(namaInput){
+    namaInput.addEventListener('input', e=>{
+      state.namaPengisi = e.target.value;
+      document.getElementById('btnNext').disabled = !(state.namaPengisi.trim().length>0 && state.foto.length>0);
+    });
+  }
+  // step4: foto via kamera langsung (live capture, bukan upload galeri)
+  const startCamBtn = document.getElementById('startCamBtn');
+  const closeCamBtn = document.getElementById('closeCamBtn');
+  const shootBtn = document.getElementById('shootBtn');
+  const camVideo = document.getElementById('camVideo');
+  const camError = document.getElementById('camError');
+
+  if(camStream && camVideo){
+    camVideo.srcObject = camStream; // reattach stream if it survived a re-render
+  }
+
+  if(startCamBtn){
+    startCamBtn.addEventListener('click', async ()=>{
+      camError.style.display = 'none';
+      try{
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video:{ facingMode:{ ideal:'environment' } }, audio:false
+        });
+        camStream = stream;
+        document.getElementById('camIdle').style.display = 'none';
+        document.getElementById('camLive').style.display = '';
+        document.getElementById('camControls').style.display = '';
+        camVideo.srcObject = stream;
+      }catch(err){
+        camError.style.display = 'block';
+        camError.textContent = 'Kamera tidak dapat diakses. Pastikan izin kamera browser sudah diaktifkan, lalu coba lagi. Foto tidak dapat diambil dari galeri pada form ini.';
+      }
+    });
+  }
+
+  if(shootBtn){
+    shootBtn.addEventListener('click', ()=>{
+      const canvas = document.createElement('canvas');
+      canvas.width = camVideo.videoWidth;
+      canvas.height = camVideo.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(camVideo, 0, 0, canvas.width, canvas.height);
+
+      const stamp = fmtTime(new Date());
+      const fontSize = Math.max(16, Math.round(canvas.width*0.026));
+      ctx.font = `600 ${fontSize}px monospace`;
+      const padding = fontSize*0.6;
+      const textWidth = ctx.measureText(stamp).width;
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillRect(0, canvas.height-fontSize-padding*2, textWidth+padding*2, fontSize+padding*2);
+      ctx.fillStyle = "#fbd504";
+      ctx.textBaseline = "middle";
+      ctx.fillText(stamp, padding, canvas.height-padding-fontSize/2);
+
+      state.foto.push({data:canvas.toDataURL('image/jpeg',0.85), time:stamp});
+
+      // append thumbnail without tearing down the live video stream
+      document.getElementById('photoGridWrap').innerHTML = photoGridHTML();
+      attachRemovePhotoEvents();
+      document.getElementById('btnNext').disabled = !(state.namaPengisi.trim().length>0 && state.foto.length>0);
+    });
+  }
+
+  if(closeCamBtn){
+    closeCamBtn.addEventListener('click', stopCamera);
+  }
+
+  attachRemovePhotoEvents();
+  // step5: toggle alat
+  document.querySelectorAll('[data-toggle]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const name = el.dataset.toggle;
+      const a = state.alat[name];
+      a.status = a.status==='baik' ? null : 'baik';
+      if(a.status==='baik') a.alasan = "";
+      renderStep();
+    });
+  });
+  document.querySelectorAll('[data-reason]').forEach(el=>{
+    el.addEventListener('click', e=>e.stopPropagation());
+    el.addEventListener('input', e=>{
+      state.alat[e.target.dataset.reason].alasan = e.target.value;
+    });
+  });
+  // step6: declare
+  const declareCheck = document.getElementById('declareCheck');
+  if(declareCheck){
+    declareCheck.addEventListener('change', e=>{
+      state.declare = e.target.checked;
+      document.getElementById('btnNext').disabled = !state.declare;
+    });
+  }
+  // nav
+  const back = document.getElementById('btnBack');
+  if(back) back.addEventListener('click', ()=>{ stopCamera(); state.step--; renderAll(); });
+
+  const next = document.getElementById('btnNext');
+  if(next) next.addEventListener('click', ()=>{
+    if(state.step===5){
+      // mark unreviewed items as rusak, validate reasons
+      const items = ALAT_DB[state.tema] || [];
+      let valid = true;
+      items.forEach(name=>{
+        const a = state.alat[name];
+        if(a.status!=='baik'){ a.status='rusak'; if(a.alasan.trim()==='') valid=false; }
+      });
+      state.touchedReason = true;
+      if(!valid){ renderStep(); return; }
+    }
+    if(state.step===6){
+      if(state.sending) return;
+      submitToServer();
+      return;
+    }
+    stopCamera();
+    state.step++;
+    renderAll();
+  });
+}
+
+function stopCamera(){
+  if(camStream){
+    camStream.getTracks().forEach(t=>t.stop());
+    camStream = null;
+  }
+  const idle = document.getElementById('camIdle');
+  const live = document.getElementById('camLive');
+  const controls = document.getElementById('camControls');
+  if(idle) idle.style.display = '';
+  if(live) live.style.display = 'none';
+  if(controls) controls.style.display = 'none';
+}
+
+/* ============== KIRIM DATA KE GOOGLE APPS SCRIPT ============== */
+async function submitToServer(){
+  state.sending = true;
+  state.sendError = null;
+  renderStep();
+
+  const hari = HARI_LIST.find(h => h.id === state.hari);
+  const submitId = 'KKL3-' + Date.now().toString().slice(-8);
+
+  // Susun payload. Foto dikirim sebagai base64 dataURL (data:image/jpeg;base64,...)
+  // lalu di sisi server (Apps Script) akan didekode dan disimpan sebagai file ke Google Drive.
+  const payload = {
+    submitId: submitId,
+    tema: state.tema,
+    hariId: state.hari,
+    hariLabel: hari ? hari.date : "",
+    hariPlace: hari ? hari.place : "",
+    aktivitas: state.aktivitas,
+    namaPengisi: state.namaPengisi,
+    foto: state.foto,       // [{data: 'data:image/jpeg;base64,...', time: '...'}]
+    alat: state.alat,       // {namaAlat: {status:'baik'|'rusak', alasan:''}}
+    waktuKirim: fmtTime(new Date())
+  };
+
+  if(!GAS_URL || GAS_URL.indexOf('GANTI_DENGAN') === 0){
+    state.sending = false;
+    state.sendError = 'URL Google Apps Script belum diatur. Buka kode HTML, cari variabel GAS_URL, lalu isi dengan URL Web App hasil deploy.';
+    renderStep();
+    return;
+  }
+
+  try{
+    // Content-Type 'text/plain' sengaja dipakai (bukan application/json) supaya browser
+    // menganggap ini "simple request" dan tidak memicu preflight OPTIONS, yang tidak
+    // didukung oleh Google Apps Script Web App. Di sisi server tetap diparse sebagai JSON.
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+
+    if(!res.ok){
+      throw new Error('Server merespons dengan status ' + res.status);
+    }
+
+    const result = await res.json();
+    if(result.result === 'success'){
+      state.submitId = result.submitId || submitId;
+      state.submitted = true;
+      state.sending = false;
+      renderAll();
+    } else {
+      throw new Error(result.message || 'Server menolak data yang dikirim.');
+    }
+  }catch(err){
+    state.sending = false;
+    state.sendError = 'Gagal mengirim laporan. Periksa koneksi internet kamu, lalu coba lagi. (' + err.message + ')';
+    renderStep();
+  }
+}
+
+function attachRemovePhotoEvents(){
+  document.querySelectorAll('[data-rm]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      state.foto.splice(parseInt(el.dataset.rm),1);
+      document.getElementById('photoGridWrap').innerHTML = photoGridHTML();
+      attachRemovePhotoEvents();
+      document.getElementById('btnNext').disabled = !(state.namaPengisi.trim().length>0 && state.foto.length>0);
+    });
+  });
+}
+
+function renderAll(){
+  renderStepper();
+  renderStep();
+  window.scrollTo(0,0);
+}
+
+renderAll();
+</script>
+</body>
+</html>
